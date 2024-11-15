@@ -187,7 +187,7 @@ vector<Matrix<float, Eigen::Dynamic, 3>> MOEAD_function(DTLZ1_Para_F MOP)
     SortDominatedPop(pop,Elite_Pop);
 
     //################//
-    PlotPop(pop, "After Initialization");
+    //PlotPop(pop, "After Initialization");
 
     // Main Loop
     int CrsOverRand, j0, j1;
@@ -362,7 +362,7 @@ vector<Matrix<float, Eigen::Dynamic, 3>> MOEAD_function(DTLZ1_Para_F MOP)
 //################//
         string title_iter = { "iter " + std::to_string(it) + " EP" };
         std::cout << title_iter << endl;
-        if(it%10==0) plot_EigenMatToVec(Matrix_Cost, title_iter);
+        //if(it%10==0) plot_EigenMatToVec(Matrix_Cost, title_iter);
     }
     
     
