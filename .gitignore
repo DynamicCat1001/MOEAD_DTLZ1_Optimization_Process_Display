@@ -361,3 +361,5 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/ConsoleApplication_MOEAD/BestEP_MOEAD.csv
+/ConsoleApplication_MOEAD/button_display.cpp
