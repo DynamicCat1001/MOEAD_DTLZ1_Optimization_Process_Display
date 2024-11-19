@@ -3,11 +3,9 @@
 #include <glut.h>
 #include <GLFW/glfw3.h>
 
-
 #include <iostream>
 #include <fstream>
 #include "gnuplot-iostream.h"
-
 
 #include <conio.h>
 #include <stdarg.h>
@@ -29,27 +27,18 @@ GLvoid* font_style = GLUT_BITMAP_TIMES_ROMAN_10;
 
 /**---------------- function pre-define -------------------*/
 void init(void);
-
 void command_reshape(int width, int height);
-
-
-void reshape_2w(int w, int h);
-
-void mouse(int button, int state, int x, int y);
-void motion(int x, int y);
-void display_final_EP(void);
-void renderBitmapString(float x, float y, void* font, string str);
+void reshape_main(int w, int h);
 void display_main();//Eigen::MatrixXf);
 void display_Optimization_animation();
+void display_final_EP(void);
 void animate(int value);
-void drawCoordinates();//Eigen::MatrixXf);
-
-
+void mouse(int button, int state, int x, int y);
+void motion(int x, int y);
+void renderBitmapString(float x, float y, void* font, string str);
 Eigen::MatrixXf DTLZ1_EX(void);
 
-
 /**---------------- variable define -------------------*/
-
 int mx, my; //position of mouse;
 float x_angle = 30, y_angle = 30; //angle of eye
 
@@ -144,7 +133,6 @@ Button* pBtn;//pre define to be global use
 int main(int argc, char** argv)
 {
   
-    
     // get iteration first
     cout << "input Max interation, 10~1000:" << endl;
     cin >> Set_iter;
@@ -165,22 +153,21 @@ int main(int argc, char** argv)
     Matrix_Cost = Storage_Cost[0];
     ref_pt_matrix = Read_file(2500, 3);
     
-    
-
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
     glutInitWindowSize(1000, 500);
     glutInitWindowPosition(0, 0);
     main_window = glutCreateWindow("MOEAD_DTLZ1_Display");
     init();
-
+    
     glutDisplayFunc(display_main);
-    glutReshapeFunc(reshape_2w);
+    glutReshapeFunc(reshape_main);
 
     command = glutCreateSubWindow(main_window, 500, 5, 240, 490);
     glutReshapeFunc(command_reshape);
-    glutDisplayFunc(display_final_EP);
+    glutDisplayFunc(display_final_EP);// display_final_EP);
     glutMouseFunc(mouse);
+    glutMotionFunc(motion);
         
 
     screen = glutCreateSubWindow(main_window, 5, 5, 490, 490);
@@ -200,16 +187,7 @@ void init(void)
     glClearColor(0.1, 0.1, 0.1, 0.1);//視窗框線
     glShadeModel(GL_SMOOTH);
 
-    //pBtn = new Button;
-    //pBtn->m_bPressed = false;
-    //pBtn->m_fPosX = 150;//g_fWidth/2
-    //pBtn->m_fPosY = 300;//490/2-25         g_fHeight*0.9
-    //pBtn->m_fWidth = 40;
-    //pBtn->m_fHeight = 25;
-
-    //std::cout << "button pos:" << pBtn->m_fPosX << " , " << pBtn->m_fPosY << endl;
 }
-
 
 
 void command_reshape(int w, int h)
@@ -219,12 +197,11 @@ void command_reshape(int w, int h)
     glLoadIdentity();
     gluPerspective(60, 1.0, 1.5, 20);
     glMatrixMode(GL_MODELVIEW);
-    //    glClearColor(0.2, 0.2, 0.0, 0.0);//subwindow background color
+   
 }
 
 
-
-void reshape_2w(int w, int h)
+void reshape_main(int w, int h)
 {
     glViewport(0, 0, w, h);
     sub_width = (w - GAP * 3) / 2.0;
@@ -260,38 +237,22 @@ void reshape_2w(int w, int h)
 
 }
 
-
-
-
-void mouse(int button, int state, int x, int y)
-{
-    if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
-    {
-        mx = x;
-        my = y;
-    }
-}
-
-void motion(int x, int y)
-{
-    int dx, dy; //offset of mouse;
-
-    dx = x - mx;
-    dy = y - my;
-
-    y_angle += dx * 0.1f;
-    x_angle += dy * 0.1f;
-
-    mx = x;
-    my = y;
-
-    glutPostRedisplay();
-}
-
-class DrawSolution_base {
+class Draw_solution_base {
 public:
 
-    virtual void draw_solutions() = 0;
+    virtual void draw_solutions_points() = 0;
+
+    void draw_everything() {
+            draw_solutions_points();
+            draw_coordinate();
+            draw_reference_points();
+    }
+    void show_sol() {
+        vector<float> Max_val_dim = { Matrix_Cost.col(0).maxCoeff(),
+                                Matrix_Cost.col(1).maxCoeff(),
+                                Matrix_Cost.col(2).maxCoeff() };
+        std::cout << Max_val_dim[0] << ", " << Max_val_dim[1] << ", " << Max_val_dim[2] << endl;
+    }
 
     void draw_coordinate() {
         int axis_max = 100;
@@ -370,11 +331,12 @@ public:
     }
 };
 
-class Draw_final_solution : public DrawSolution_base {
+class Draw_solution_final: public Draw_solution_base {
 public:
-    void draw_solutions() override {
+    
+    void draw_solutions_points() override {
         Eigen::Matrix<float, Eigen::Dynamic, 3> Final_Cost;
-        Final_Cost = Storage_Cost[9];
+        Final_Cost = Storage_Cost[Set_iter-1];
 
         glPointSize(5);
         glBegin(GL_POINTS);
@@ -389,57 +351,72 @@ public:
     }
 };
 
+class Draw_solution_loop : public Draw_solution_base {
+    void draw_solutions_points() override {
+        //ObjectiveValue of every iteration of Elite Population
+        glPointSize(5);
+        glBegin(GL_POINTS);
+        glColor3f(0.9, 0.5f, 0.0f);
+        for (int i = 0; i < Matrix_Cost.rows(); ++i)
+        {
+            glVertex3f(Matrix_Cost.row(i)[0], Matrix_Cost.row(i)[1], Matrix_Cost.row(i)[2]);
+            std::cout << i << "-x_" << Matrix_Cost.row(i)[0] << " y_" << Matrix_Cost.row(i)[1] << " z_ " << Matrix_Cost.row(i)[2] << endl;
+        }
+        glEnd();
+    }
 
-void display_final_EP(void)
-{
-    glClear(GL_COLOR_BUFFER_BIT);
 
-    int rect[4];
-    float w, h;
+};
 
-    glGetIntegerv(GL_VIEWPORT, rect);//get width and height of window
-    w = rect[2];
-    h = rect[3];
+class Display_Base {
+public:
 
-    glClearColor(0.7f, 0.7f, 0.7f, 0.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    void Window_Set_Base() {
+        glClear(GL_COLOR_BUFFER_BIT);
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
+        int rect[4];
+        float w, h;
 
-    float U_window_size = 100.0f;
-    float L_window_size = U_window_size;
+        glGetIntegerv(GL_VIEWPORT, rect);//get width and height of window
+        w = rect[2];
+        h = rect[3];
 
-    if (w > h)
-        glOrtho(-L_window_size, U_window_size, -L_window_size, U_window_size, -L_window_size, U_window_size);//(-w / h, w / h, -1.0f, 1.0f, -1.0f, 1.0f);
-    else
-        glOrtho(-L_window_size, U_window_size, -L_window_size, U_window_size, -L_window_size, U_window_size);//(-1.0f, 1.0f, -h / w, h / w, -1.0f, 1.0f);
+        glClearColor(0.7f, 0.7f, 0.7f, 0.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
 
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    
-    glRotatef(x_angle, 1.0f, 0.0f, 0.0f);
-    glRotatef(y_angle, 0.0f, 1.0f, 0.0f);
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
 
-    Draw_final_solution draw_final_sol;
-    draw_final_sol.draw_solutions();
+        float U_window_size = 100.0f;
+        float L_window_size = U_window_size;
 
-    //print text
+        if (w > h)
+            glOrtho(-L_window_size, U_window_size, -L_window_size, U_window_size, -L_window_size, U_window_size);//(-w / h, w / h, -1.0f, 1.0f, -1.0f, 1.0f);
+        else
+            glOrtho(-L_window_size, U_window_size, -L_window_size, U_window_size, -L_window_size, U_window_size);//(-1.0f, 1.0f, -h / w, h / w, -1.0f, 1.0f);
 
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
-    gluOrtho2D(0, glutGet(GLUT_WINDOW_WIDTH), 0, glutGet(GLUT_WINDOW_HEIGHT)); // 使用正交投影
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadIdentity();
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
 
-    glColor3f(1.0f, 1.0f, 1.0f);
-    std::string str_curr = "solstions in Max iteration: " + std::to_string(Set_iter);
+        glRotatef(x_angle, 1.0f, 0.0f, 0.0f);
+        glRotatef(y_angle, 0.0f, 1.0f, 0.0f);
+    }
 
-    glutSwapBuffers();
-}
+    void Text_Print(float X_position, float Y_position , void *font ,std::string TargetText) {
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        glLoadIdentity();
+        gluOrtho2D(0, glutGet(GLUT_WINDOW_WIDTH), 0, glutGet(GLUT_WINDOW_HEIGHT)); // 使用正交投影
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glLoadIdentity();
 
+        glColor3f(1.0f, 1.0f, 1.0f);
+        //std::string str_curr = TargetText + std::to_string(Set_iter);
+
+        renderBitmapString(X_position, Y_position, font, TargetText);
+    }
+};
 
 void display_main()//Eigen::MatrixXf Matrix_Cost)
 {
@@ -448,56 +425,33 @@ void display_main()//Eigen::MatrixXf Matrix_Cost)
     glutSwapBuffers();
 }
 
-void display_Optimization_animation()//Eigen::MatrixXf Matrix_Cost)
-{
-    int rect[4];
-    float w, h;
+void display_Optimization_animation() {
+    Display_Base Display;
+    Display.Window_Set_Base();//3D projection for solutions drawing
 
-    glGetIntegerv(GL_VIEWPORT, rect);//get width and height of window
-    w = rect[2];
-    h = rect[3];
+    Draw_solution_loop draw_sol_loop;
+    draw_sol_loop.draw_everything();
 
-    glClearColor(0.7f, 0.7f, 0.7f, 0.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-
-    float U_window_size = 100.0f;
-    float L_window_size = U_window_size;
-
-    if (w > h)
-        glOrtho(-L_window_size, U_window_size, -L_window_size, U_window_size, -L_window_size, U_window_size);//(-w / h, w / h, -1.0f, 1.0f, -1.0f, 1.0f);
-    else
-        glOrtho(-L_window_size, U_window_size, -L_window_size, U_window_size, -L_window_size, U_window_size);//(-1.0f, 1.0f, -h / w, h / w, -1.0f, 1.0f);
-
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
-    glRotatef(x_angle, 1.0f, 0.0f, 0.0f);
-    glRotatef(y_angle, 0.0f, 1.0f, 0.0f);
-
-    drawCoordinates();//Matrix_Cost);
-
-
-    // print current iteration.
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
-    gluOrtho2D(0, glutGet(GLUT_WINDOW_WIDTH), 0, glutGet(GLUT_WINDOW_HEIGHT)); // 使用正交投影
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadIdentity();
-
-
-    glColor3f(1.0f, 1.0f, 1.0f);
-    std::string str_2 = "current iteration/ Max iteration: " + std::to_string(currentPeriod) + "/" + std::to_string(Set_iter);
-    const char* str_a = str_2.c_str();
-
-    renderBitmapString(g_fWidth / 10, g_fHeight - 50, GLUT_BITMAP_HELVETICA_18, str_a);
-
+    std::string str_current_iter = "current iteration/ Max iteration: " + std::to_string(currentPeriod) + "/" + std::to_string(Set_iter);
+    Display.Text_Print(g_fWidth / 10, g_fHeight - 50, GLUT_BITMAP_HELVETICA_18, str_current_iter);//2D projection & text drawing
 
     glFlush();
+    glutSwapBuffers();
+}
+
+void display_final_EP() {
+    Display_Base Display;
+    Display.Window_Set_Base();
+
+    Draw_solution_final draw_sol_final;
+    draw_sol_final.draw_everything();
+
+    std::string str_final = "Best solutions in Max iteration: " + std::to_string(Set_iter);
+    std::string str_final2 = "Total solutions: " + std::to_string(Storage_Cost[Set_iter - 1].rows());
+
+    Display.Text_Print(g_fWidth / 10, g_fHeight - 50, GLUT_BITMAP_HELVETICA_18, str_final);
+    Display.Text_Print(g_fWidth / 10, g_fHeight - 80, GLUT_BITMAP_HELVETICA_18, str_final2);
+
     glutSwapBuffers();
 }
 
@@ -517,102 +471,29 @@ void animate(int value)
     glutTimerFunc(1000 / 60, animate, 0); // 1000/60 = 60 fps
 }
 
-
-void drawCoordinates()//Eigen::MatrixXf Matrix_Cost);
+void mouse(int button, int state, int x, int y)
 {
-
-    vector<float> Max_val_dim = { Matrix_Cost.col(0).maxCoeff(),
-                                Matrix_Cost.col(1).maxCoeff(),
-                                Matrix_Cost.col(2).maxCoeff() };
-    std::cout << Max_val_dim[0] << ", " << Max_val_dim[1] << ", " << Max_val_dim[2] << endl;
-    
-
-
-    int axis_max = 100;
-    glLineWidth(3.0f);
-    glColor3f(0.8f, 0.0f, 0.0f); //red x axis
-    glBegin(GL_LINES);
-    glVertex3f(0.0f, 0.0f, 0.0f);//draw points
-    glVertex3f(axis_max, 0.0f, 0.0f);//200 Max_val_dim[0]
-    glEnd();
-
-    glColor3f(0.0, 0.8, 0.0); //green y axis
-    glBegin(GL_LINES);
-    glVertex3f(0.0f, 0.0f, 0.0f);
-    glVertex3f(0.0f, axis_max, 0.0f);//200 Max_val_dim[1]
-    glEnd();
-    glColor3f(0.0, 0.0, 0.8); //blue z axis
-    glBegin(GL_LINES);
-    glVertex3f(0.0f, 0.0f, 0.0f);
-    glVertex3f(0.0f, 0.0f, axis_max);//200 Max_val_dim[2]
-    glEnd();
-    
-    glColor3f(0.9, 0.9, 0.9); //frame & grid
-    glLineWidth(1.0f);
-    glBegin(GL_LINES);
-    for (int i = 10; i <= axis_max; i += 10) {
-        glVertex3f(i, 0.0f, 0.0f);
-        glVertex3f(i, 0.0f, axis_max);//200 Max_val_dim[2]
-    }
-    for (int i = 10; i <= axis_max; i += 10) {
-        glVertex3f(i, 0.0f, 0.0f);
-        glVertex3f(i, axis_max, 0.0f);//200 Max_val_dim[2]
-    }
-    for (int i = 10; i <= axis_max; i+=10) {
-        glVertex3f(0.0f, i,  0.0f);
-        glVertex3f(0.0f, i,  axis_max);//200 Max_val_dim[2]
-    }
-    for (int i = 10; i <= axis_max; i += 10) {
-        glVertex3f(0.0f,     i, 0.0f);
-        glVertex3f(axis_max, i, 0.0f);//200 Max_val_dim[2]
-    }
-    for (int i = 10; i <= axis_max; i += 10) {
-        glVertex3f(0.0f, 0.0f, i);
-        glVertex3f(axis_max, 0.0f, i);//200 Max_val_dim[2]
-    }
-    for (int i = 10; i <= axis_max; i += 10) {
-        glVertex3f(0.0f, 0.0f,     i);
-        glVertex3f(0.0f, axis_max, i);//200 Max_val_dim[2]
-    }
-    glEnd();
-
-
-    int scale_ii = 0;
-    glPointSize(3);
-    glBegin(GL_POINTS);
-    glColor3f(0.0, 0.0, 0.0); //mark for every scales
-    for (int ii = 1; ii < 10; ii++) {
-        scale_ii = ii * 10.0f;
-        glVertex3f(scale_ii, 0.0f, 0.0f);
-        glVertex3i(0.0f, scale_ii, 0.0f);
-        glVertex3i(0.0f, 0.0f, scale_ii);
-    }
-    glEnd();
-
-    //reference points
-    glPointSize(4);
-    glBegin(GL_POINTS);
-    glColor3f(1, 0.5, 1);
-    for (int i = 0; i < 2500; ++i)
+    if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
     {
-        glVertex3f(ref_pt_matrix.row(i)[0], ref_pt_matrix.row(i)[1], ref_pt_matrix.row(i)[2]);
+        mx = x;
+        my = y;
     }
-    glColor3f(0.5, 0.0, 0.5);//origin
-    glVertex3f(0.5, 0.5, 0.5);
-    glVertex3f(0, 0, 0);
-    glEnd();
+}
 
-    //ObjectiveValue of Elite Population
-    glPointSize(5);
-    glBegin(GL_POINTS);
-    glColor3f(0.9, 0.5f, 0.0f);
-    for (int i = 0; i < Matrix_Cost.rows(); ++i)
-    {
-        glVertex3f(Matrix_Cost.row(i)[0], Matrix_Cost.row(i)[1], Matrix_Cost.row(i)[2]);
-        std::cout << i << "-x_" << Matrix_Cost.row(i)[0] << " y_" << Matrix_Cost.row(i)[1] << " z_ " << Matrix_Cost.row(i)[2] << endl;
-    }
-    glEnd();
+void motion(int x, int y)
+{
+    int dx, dy; //offset of mouse;
 
+    dx = x - mx;
+    dy = y - my;
+
+    y_angle += dx * 0.1f;
+    x_angle += dy * 0.1f;
+
+    mx = x;
+    my = y;
+
+    glutPostRedisplay();
 }
 
 void renderBitmapString(float x, float y, void* font, string str)
