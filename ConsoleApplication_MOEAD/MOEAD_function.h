@@ -157,16 +157,16 @@ vector<Matrix<float, Eigen::Dynamic, 3>> MOEAD_function(DTLZ1_Para_F MOP)
 //        pop[i].Position=MOP.Position.row(i);//had been calculate in Matlab_DTLZ1
 //    }
     
-    MatrixXf Cost2Plot(MOP.nPop, nObj);
+    //MatrixXf Cost2Plot(MOP.nPop, nObj);
 
     for(int i=0; i<MOP.nPop; ++i)
     {
         pop[i].Cost=CostFunction(pop[i].Position);
         z_min_pt=z_min_pt.eval().cwiseMin(pop[i].Cost);
-        Cost2Plot.row(i) = pop[i].Cost;
+        //Cost2Plot.row(i) = pop[i].Cost;
 
     }
-    plot_EigenMatToVec(Cost2Plot, "Cost1");
+    //plot_EigenMatToVec(Cost2Plot, "Cost1");
 
 
 
@@ -227,12 +227,12 @@ vector<Matrix<float, Eigen::Dynamic, 3>> MOEAD_function(DTLZ1_Para_F MOP)
             //cout << i<<"_th_neighbor: "<< sp(i).Neighbors << endl;
             for (int nCrossover_iter=0; nCrossover_iter<CrsOverRand; ++nCrossover_iter)//CrsOverRand
             {
-
+                //cout << "iter_crossover:" << nCrossover_iter << endl;
                 std::shuffle(vec.begin(), vec.end(), std::default_random_engine(rd()));//0~19 randomly switched
 
                 
 
-                cout<<"iter:"<<nCrossover_iter<<endl;
+                
                 j0=sp(i).Neighbors(vec(0));
                 //cout<<"j0 : "<<j0;
 
@@ -251,20 +251,20 @@ vector<Matrix<float, Eigen::Dynamic, 3>> MOEAD_function(DTLZ1_Para_F MOP)
                 z_min_pt=z_min_pt.eval().cwiseMin(y.Cost);
 //              //value of z pt is TBC--------------------------------------------------------!!!
 
-                std::vector<empty_individual_class> PlotSet;
-                
-                PlotSet.push_back(pop[j0]);
-                PlotSet.push_back(pop[j1]);
-                PlotSet.push_back(y);
+                //std::vector<empty_individual_class> PlotSet;
+                //
+                //PlotSet.push_back(pop[j0]);
+                //PlotSet.push_back(pop[j1]);
+                //PlotSet.push_back(y);
 
-                MatrixXf CrossSub(4, nObj);
-                CrossSub.row(0) = pop[j0].Cost;
-                CrossSub.row(1) = pop[j1].Cost;
-                CrossSub.row(2) = z_min_pt;
-                CrossSub.row(3) = y.Cost;
+                //MatrixXf CrossSub(4, nObj);
+                //CrossSub.row(0) = pop[j0].Cost;
+                //CrossSub.row(1) = pop[j1].Cost;
+                //CrossSub.row(2) = z_min_pt;
+                //CrossSub.row(3) = y.Cost;
 
 
-                vector<vector<float>>array_Neighbor = EIgenMatrix_to_Vector(PlotSet);
+                //vector<vector<float>>array_Neighbor = EIgenMatrix_to_Vector(PlotSet);
                 
                 /*for (auto KK : array_Neighbor) {
                     for (auto JJ : KK) {
@@ -273,7 +273,7 @@ vector<Matrix<float, Eigen::Dynamic, 3>> MOEAD_function(DTLZ1_Para_F MOP)
                     std::cout << endl;
                 }*/
 
-                plot_EigenMatToTuple(pop[i].Cost, CrossSub, "CROSSOVER");
+                //plot_EigenMatToTuple(pop[i].Cost, CrossSub, "CROSSOVER");
 
                 //PlotPop(PlotSet, { "CrossOvering" + std::to_string(nCrossover_iter) + ":" });
             }

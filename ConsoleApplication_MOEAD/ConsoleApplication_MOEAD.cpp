@@ -255,7 +255,7 @@ public:
     }
 
     void draw_coordinate() {
-        int axis_max = 100;
+        int axis_max = 300;
         glLineWidth(3.0f);
         glColor3f(0.8f, 0.0f, 0.0f); //red x axis
         glBegin(GL_LINES);
