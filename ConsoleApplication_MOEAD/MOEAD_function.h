@@ -11,6 +11,7 @@
 #include <type_traits>//for isfield>>has_cost
 #include <memory>//std::unique_ptrb
 #include <math.h>
+#include <tuple>
 
 #include "DTLZ1_Para.h"
 #include "DTLZ1_function.h"
@@ -20,6 +21,7 @@
 #include "randsample.h"
 #include "plot_EigenMatToVec.h"
 #include "plot_DVecToVec.h"
+#include "plot_EigenMatToTuple.h"
 using namespace std;
 using namespace Eigen;
 
@@ -96,7 +98,7 @@ void c_test(const Eigen::MatrixXf);
 void Mutate_Func(Eigen::MatrixXf& y_Position, Eigen::MatrixXf x);
 void findlimits(Eigen::MatrixXf &pop_Position, Eigen::MatrixXf Lb, Eigen::MatrixXf Ub);
 void PlotPop(std::vector<empty_individual_class> pop, string);
-
+vector<vector<float>> EIgenMatrix_to_Vector(std::vector<empty_individual_class> pop);
 
 
 #endif // MOEAD_FUNCTION_H_INCLUDED
@@ -156,7 +158,6 @@ vector<Matrix<float, Eigen::Dynamic, 3>> MOEAD_function(DTLZ1_Para_F MOP)
 //    }
     
     MatrixXf Cost2Plot(MOP.nPop, nObj);
-    //MatrixXf Cost2Plot2(MOP.nPop, nObj);
 
     for(int i=0; i<MOP.nPop; ++i)
     {
@@ -166,7 +167,7 @@ vector<Matrix<float, Eigen::Dynamic, 3>> MOEAD_function(DTLZ1_Para_F MOP)
 
     }
     plot_EigenMatToVec(Cost2Plot, "Cost1");
-    //plot_EigenMatToVec(Cost2Plot2, "Cost2");
+
 
 
     for(int i=0; i<MOP.nPop; ++i)
@@ -215,8 +216,11 @@ vector<Matrix<float, Eigen::Dynamic, 3>> MOEAD_function(DTLZ1_Para_F MOP)
         for(int i=0; i<MOP.nPop; ++i)//MOP.nPop
         {
              //cout<<"MOP nPop_"<< i<<"Reproduction (Crossover)"<<endl;
+           
             
-
+            
+            
+            //================================================================================
             CrsOverRand=rand()%(Crossover_params.number)+1;  //(rand() % static_cast<int>(Crossover_params.number + 1));//0~20
             //cout<<"_CrsOver:"<<CrsOverRand<<endl;
             y.Position=MatrixXf::Constant(1,nVar,0);
@@ -224,11 +228,11 @@ vector<Matrix<float, Eigen::Dynamic, 3>> MOEAD_function(DTLZ1_Para_F MOP)
             for (int nCrossover_iter=0; nCrossover_iter<CrsOverRand; ++nCrossover_iter)//CrsOverRand
             {
 
-                std::shuffle(vec.begin(), vec.end(), std::default_random_engine(rd()));
+                std::shuffle(vec.begin(), vec.end(), std::default_random_engine(rd()));//0~19 randomly switched
 
                 
 
-//                cout<<"iter:"<<nCrossover_iter<<endl;
+                cout<<"iter:"<<nCrossover_iter<<endl;
                 j0=sp(i).Neighbors(vec(0));
                 //cout<<"j0 : "<<j0;
 
@@ -246,7 +250,34 @@ vector<Matrix<float, Eigen::Dynamic, 3>> MOEAD_function(DTLZ1_Para_F MOP)
                 //cout<<"y Cost:"<<y.Cost<<endl;
                 z_min_pt=z_min_pt.eval().cwiseMin(y.Cost);
 //              //value of z pt is TBC--------------------------------------------------------!!!
+
+                std::vector<empty_individual_class> PlotSet;
+                
+                PlotSet.push_back(pop[j0]);
+                PlotSet.push_back(pop[j1]);
+                PlotSet.push_back(y);
+
+                MatrixXf CrossSub(4, nObj);
+                CrossSub.row(0) = pop[j0].Cost;
+                CrossSub.row(1) = pop[j1].Cost;
+                CrossSub.row(2) = z_min_pt;
+                CrossSub.row(3) = y.Cost;
+
+
+                vector<vector<float>>array_Neighbor = EIgenMatrix_to_Vector(PlotSet);
+                
+                /*for (auto KK : array_Neighbor) {
+                    for (auto JJ : KK) {
+                        std::cout << JJ << " ";
+                    }
+                    std::cout << endl;
+                }*/
+
+                plot_EigenMatToTuple(pop[i].Cost, CrossSub, "CROSSOVER");
+
+                //PlotPop(PlotSet, { "CrossOvering" + std::to_string(nCrossover_iter) + ":" });
             }
+            
 
             int sp_N;
             for (int j=0; j<sp(0).Neighbors.cols(); ++j)//neighbor
@@ -585,7 +616,11 @@ void Crossover_Func(Eigen::MatrixXf& y_Position, const Eigen::MatrixXf x1, const
     y_Position=alpha.array()*x1.array()+(1-alpha.array())*x2.array();
     y_Position=y_Position.eval().cwiseMax(min_p);
     y_Position=y_Position.eval().cwiseMin(max_p);
-//    cout<<"Y_after:"<<y_Position<<endl;
+    //cout << "alpha" << alpha << endl;
+    //cout << "x1:" << x1 << endl;
+    //cout << "x2:" << x2 << endl;
+    //cout<<"Y_after:"<<y_Position<<endl;
+
 
 }
 
@@ -692,4 +727,25 @@ void PlotPop(std::vector<empty_individual_class> pop, string title) {
     else {
         std::cout << "empty pop\n";
     }
+}
+vector<vector<float>> EIgenMatrix_to_Vector(std::vector<empty_individual_class> pop) {
+    vector<vector<float>> array_temp;
+    if (pop.size() != 0) {
+       
+        vector<float> v_temp(3);
+        float* p = &v_temp[0];
+
+
+        for (int i = 0; i < (int)pop.size(); ++i)
+        {
+            Eigen::Map<MatrixXf>(p, 1, 3) = pop[i].Cost;
+            array_temp.push_back(v_temp);
+        }
+        
+    }
+    else {
+        std::cout << "empty pop\n";
+    }
+
+    return array_temp;
 }

@@ -17,7 +17,7 @@ void plot_DVecToVec(vector<vector<float>> data, string titleS) {
     gp << "set border 4095\n";
 
 
-    gp << "splot" << gp.file1d(data) << "with points\n";
+    gp << "splot" << gp.file1d(data) << "with points pointtype 10 linecolor 'blue'\n";
 
 }
 

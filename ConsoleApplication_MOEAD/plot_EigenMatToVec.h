@@ -34,7 +34,7 @@ void plot_EigenMatToVec(MatrixXf ref_pt_matrix, string titleS) {
     //gp << "plot'-'with points\n";
     //gp.send1d(array1);
 
-    gp << "splot" << gp.file1d(data) << "with points palette\n";
+    gp << "splot" << gp.file1d(data) << "with points pointtype 3 linecolor 'blue'\n";//"with points palette\n"
 
 }
 
