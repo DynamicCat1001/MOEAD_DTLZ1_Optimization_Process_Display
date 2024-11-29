@@ -182,9 +182,11 @@ vector<Matrix<float, Eigen::Dynamic, 3>> MOEAD_function(DTLZ1_Para_F MOP)
     // Main Loop
     int CrsOverRand, j0, j1;
 
-    empty_individual_class y(nVar, nObj);               //new born population by crossover & mutation
-    MatrixXf p0(1, nVar),p1(1, nVar);                   //position(design parameter)matrix of neighbor for Crossover 
-    Matrix<int, 1, Eigen::Dynamic> vec(1,CrsOver_T);    // index series of 20 neighbor
+    empty_individual_class y(nVar, nObj);
+    MatrixXf p0(1, nVar),p1(1, nVar);
+
+
+    Matrix<int, 1, Eigen::Dynamic> vec(1,CrsOver_T);
 
     std::random_device rd;
     srand(time(NULL));
@@ -197,7 +199,7 @@ vector<Matrix<float, Eigen::Dynamic, 3>> MOEAD_function(DTLZ1_Para_F MOP)
 
     for (int it=0; it<MOP.MaxIt; ++it) //MOP.MaxIt
     {
-        std::cout<<"MOP.MaxIt in MOEAD:"<<it<<" / " << MOP.MaxIt << endl;
+        std::cout<<"MOP.MaxIt in MOEAD"<<it<<endl;
 
         for(int i=0; i<MOP.nPop; ++i)//MOP.nPop
         {
@@ -208,7 +210,6 @@ vector<Matrix<float, Eigen::Dynamic, 3>> MOEAD_function(DTLZ1_Para_F MOP)
 
             for (int nCrossover_iter=0; nCrossover_iter<CrsOverRand; ++nCrossover_iter)//crossover for CrsOverRand times
             {
-                
                 std::shuffle(vec.begin(), vec.end(), std::default_random_engine(rd()));//randomly pick 2 neighbors out of 20 for crossover
 
                 j0=sp(i).Neighbors(vec(0));
@@ -260,12 +261,14 @@ vector<Matrix<float, Eigen::Dynamic, 3>> MOEAD_function(DTLZ1_Para_F MOP)
 
 
         // Determine Population Domination Status
+
+
         DetermineDomination(pop);
         SortDominatedPop(pop, Elite_Pop);
         MatrixXf Matrix_Cost;
 
-        //sorted Elite pop and erase extra population if the total amount exceed specified repository
-        if (Elite_Pop.size()==0) //in case 0 solution at early iterations.
+        //in case 0 solutions
+        if (Elite_Pop.size()==0)
         {
             it=0;
             continue;
@@ -531,11 +534,17 @@ void Crossover_Func(Eigen::MatrixXf& y_Position, const Eigen::MatrixXf x1, const
 
     MatrixXf min_p=MatrixXf::Constant(1,x1.cols(),Crossover_params.VarMin_cross);
     MatrixXf max_p=MatrixXf::Constant(1,x1.cols(),Crossover_params.VarMax_cross);
+    // alpha=unifrnd(-gamma,1+gamma,size(x1));
     MatrixXf alpha=MatrixXf::Random(x1.rows(),x1.cols()).array() * 0.5 + 0.5;//1 by n
 
     y_Position=alpha.array()*x1.array()+(1-alpha.array())*x2.array();
     y_Position=y_Position.eval().cwiseMax(min_p);
     y_Position=y_Position.eval().cwiseMin(max_p);
+    //cout << "alpha" << alpha << endl;
+    //cout << "x1:" << x1 << endl;
+    //cout << "x2:" << x2 << endl;
+    //cout<<"Y_after:"<<y_Position<<endl;
+
 
 }
 
@@ -643,3 +652,24 @@ void PlotPop(std::vector<empty_individual_class> pop, string title) {
         std::cout << "empty pop\n";
     }
 }
+//vector<vector<float>> EIgenMatrix_to_Vector(std::vector<empty_individual_class> pop) {
+//    vector<vector<float>> array_temp;
+//    if (pop.size() != 0) {
+//       
+//        vector<float> v_temp(3);
+//        float* p = &v_temp[0];
+//
+//
+//        for (int i = 0; i < (int)pop.size(); ++i)
+//        {
+//            Eigen::Map<MatrixXf>(p, 1, 3) = pop[i].Cost;
+//            array_temp.push_back(v_temp);
+//        }
+//        
+//    }
+//    else {
+//        std::cout << "empty pop\n";
+//    }
+//
+//    return array_temp;
+//}
