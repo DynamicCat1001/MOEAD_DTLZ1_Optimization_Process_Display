@@ -38,9 +38,10 @@ void motion(int x, int y);
 void renderBitmapString(float x, float y, void* font, string str);
 Eigen::MatrixXf DTLZ1_EX(void);
 
-/**---------------- variable define -------------------*/
+/**----------------view parameter -------------------*/
 int mx, my; //position of mouse;
-float x_angle = 30, y_angle = 30; //angle of eye
+float x_angle = 30, y_angle = -60; //angle of eye
+int range_view = 300;
 
 /**-----------------animation parameter----------*/
 int currentPeriod = 0;
@@ -134,20 +135,35 @@ int main(int argc, char** argv)
 {
   
     // get iteration first
-    cout << "input Max interation, 10~1000:" << endl;
-    cin >> Set_iter;
-    if (Set_iter > 1000) {
-        cout << "value exceed 1000, optimize with iter=1000." << endl;
-        Set_iter = 1000;
+
+    
+    while (1) {
+        cout << "input Max interation, (integer)10~1000:" << endl;
+        
+        if ((cin >> Set_iter)) {
+            if (Set_iter > 1000) {
+                cout << "value exceed 1000, optimize with iter=1000." << endl;
+                Set_iter = 1000;
+            }
+            else if (Set_iter < 10) {
+                cout << "value less than 10, optimize with iter=10." << endl;
+                Set_iter = 10;
+            }
+            else {
+                cout << "Max iteration: " << Set_iter << endl;
+            }
+            if (Set_iter >= 20)Set_iter_step = Set_iter / 20;
+            else Set_iter_step = Set_iter / 10;
+            break;
+
+        }
+        else {
+            cout << "type incorrect, please input again: " << endl;
+            std::cin.clear();
+            std::cin.ignore(1024, '\n');
+
+        }
     }
-    else if (Set_iter < 10) {
-        cout << "value less than 10, optimize with iter=10." << endl;
-        Set_iter = 10;
-    }
-    else {
-        cout << "Max iteration: " << Set_iter << endl;
-    }
-    Set_iter_step = Set_iter / 10;
     
     DTLZ1_EX();
     Matrix_Cost = Storage_Cost[0];
@@ -255,8 +271,8 @@ public:
     }
 
     void draw_coordinate() {
-        int axis_max = 300;
-        glLineWidth(3.0f);
+        int axis_max = range_view;
+        glLineWidth(0.5f);
         glColor3f(0.8f, 0.0f, 0.0f); //red x axis
         glBegin(GL_LINES);
         glVertex3f(0.0f, 0.0f, 0.0f);//draw points
@@ -274,50 +290,60 @@ public:
         glVertex3f(0.0f, 0.0f, axis_max);//200 Max_val_dim[2]
         glEnd();
 
+        
         glColor3f(0.9, 0.9, 0.9); //frame & grid
         glLineWidth(1.0f);
         glBegin(GL_LINES);
-        for (int i = 10; i <= axis_max; i += 10) {
-            glVertex3f(i, 0.0f, 0.0f);
-            glVertex3f(i, 0.0f, axis_max);//200 Max_val_dim[2]
+        int i_total = 10, i_step = ceil(axis_max / i_total);
+        float axis_scale;
+        for (auto i_scale=1; i_scale <= i_total; i_scale ++) {
+            axis_scale = i_scale * i_step;
+            glVertex3f(axis_scale, 0.0f, 0.0f);
+            glVertex3f(axis_scale, 0.0f, axis_max);//200 Max_val_dim[2]
         }
-        for (int i = 10; i <= axis_max; i += 10) {
-            glVertex3f(i, 0.0f, 0.0f);
-            glVertex3f(i, axis_max, 0.0f);//200 Max_val_dim[2]
+        for (auto i_scale = 1; i_scale <= i_total; i_scale ++) {
+            axis_scale = i_scale * i_step;
+            glVertex3f(axis_scale, 0.0f, 0.0f);
+            glVertex3f(axis_scale, axis_max, 0.0f);//200 Max_val_dim[2]
         }
-        for (int i = 10; i <= axis_max; i += 10) {
-            glVertex3f(0.0f, i, 0.0f);
-            glVertex3f(0.0f, i, axis_max);//200 Max_val_dim[2]
+        for (auto i_scale = 1; i_scale <= i_total; i_scale++) {
+            axis_scale = i_scale * i_step;
+            glVertex3f(0.0f, axis_scale, 0.0f);
+            glVertex3f(0.0f, axis_scale, axis_max);//200 Max_val_dim[2]
         }
-        for (int i = 10; i <= axis_max; i += 10) {
-            glVertex3f(0.0f, i, 0.0f);
-            glVertex3f(axis_max, i, 0.0f);//200 Max_val_dim[2]
+        for (auto i_scale = 1; i_scale <= i_total; i_scale++) {
+            axis_scale = i_scale * i_step;
+            glVertex3f(0.0f, axis_scale, 0.0f);
+            glVertex3f(axis_max, axis_scale, 0.0f);//200 Max_val_dim[2]
         }
-        for (int i = 10; i <= axis_max; i += 10) {
-            glVertex3f(0.0f, 0.0f, i);
-            glVertex3f(axis_max, 0.0f, i);//200 Max_val_dim[2]
+        for (auto i_scale = 1; i_scale <= i_total; i_scale++) {
+            axis_scale = i_scale * i_step;
+            glVertex3f(0.0f, 0.0f, axis_scale);
+            glVertex3f(axis_max, 0.0f, axis_scale);//200 Max_val_dim[2]
         }
-        for (int i = 10; i <= axis_max; i += 10) {
-            glVertex3f(0.0f, 0.0f, i);
-            glVertex3f(0.0f, axis_max, i);//200 Max_val_dim[2]
+        for (auto i_scale = 1; i_scale <= i_total; i_scale ++) {
+            axis_scale = i_scale * i_step;
+            glVertex3f(0.0f, 0.0f, axis_scale);
+            glVertex3f(0.0f, axis_max, axis_scale);//200 Max_val_dim[2]
         }
         glEnd();
 
         int scale_ii = 0;
-        glPointSize(3);
+        glPointSize(1);
         glBegin(GL_POINTS);
-        glColor3f(0.0, 0.0, 0.0); //mark for every scales
+        glColor3f(0.9, 0.9, 0.9); //mark for every scales
         for (int ii = 1; ii < 10; ii++) {
-            scale_ii = ii * 10.0f;
+            scale_ii = ii * i_step;
             glVertex3f(scale_ii, 0.0f, 0.0f);
             glVertex3i(0.0f, scale_ii, 0.0f);
             glVertex3i(0.0f, 0.0f, scale_ii);
         }
         glEnd();
+        
     }
 
     void draw_reference_points() {
-        glPointSize(4);
+        glPointSize(1);
         glBegin(GL_POINTS);
         glColor3f(1, 0.5, 1);
         for (int i = 0; i < 2500; ++i)
@@ -338,9 +364,9 @@ public:
         Eigen::Matrix<float, Eigen::Dynamic, 3> Final_Cost;
         Final_Cost = Storage_Cost[Set_iter-1];
 
-        glPointSize(5);
+        glPointSize(3);
         glBegin(GL_POINTS);
-        glColor3f(0.9, 0.5f, 0.0f);
+        glColor3f(0.0, 0.0f, 0.0f);
         for (int i = 0; i < Final_Cost.rows(); ++i)
         {
             glVertex3f(Final_Cost.row(i)[0], Final_Cost.row(i)[1], Final_Cost.row(i)[2]);
@@ -354,9 +380,9 @@ public:
 class Draw_solution_loop : public Draw_solution_base {
     void draw_solutions_points() override {
         //ObjectiveValue of every iteration of Elite Population
-        glPointSize(5);
+        glPointSize(3);
         glBegin(GL_POINTS);
-        glColor3f(0.9, 0.5f, 0.0f);
+        glColor3f(0.0f, 0.0f, 0.0f);
         for (int i = 0; i < Matrix_Cost.rows(); ++i)
         {
             glVertex3f(Matrix_Cost.row(i)[0], Matrix_Cost.row(i)[1], Matrix_Cost.row(i)[2]);
@@ -387,7 +413,7 @@ public:
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
 
-        float U_window_size = 100.0f;
+        float U_window_size = range_view;
         float L_window_size = U_window_size;
 
         if (w > h)
@@ -400,6 +426,7 @@ public:
 
         glRotatef(x_angle, 1.0f, 0.0f, 0.0f);
         glRotatef(y_angle, 0.0f, 1.0f, 0.0f);
+        
     }
 
     void Text_Print(float X_position, float Y_position , void *font ,std::string TargetText) {
@@ -433,8 +460,9 @@ void display_Optimization_animation() {
     draw_sol_loop.draw_everything();
 
     std::string str_current_iter = "current iteration/ Max iteration: " + std::to_string(currentPeriod) + "/" + std::to_string(Set_iter);
+    std::string str_axis_range = "axis scale value: " + std::to_string(range_view / 10) + "/" + std::to_string(range_view);
     Display.Text_Print(g_fWidth / 10, g_fHeight - 50, GLUT_BITMAP_HELVETICA_18, str_current_iter);//2D projection & text drawing
-
+    Display.Text_Print(g_fWidth / 10, g_fHeight - 80, GLUT_BITMAP_HELVETICA_18, str_axis_range);
     glFlush();
     glutSwapBuffers();
 }

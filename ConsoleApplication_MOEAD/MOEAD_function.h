@@ -22,6 +22,7 @@
 #include "plot_EigenMatToVec.h"
 #include "plot_DVecToVec.h"
 #include "plot_EigenMatToTuple.h"
+#include "SaveMatToCVS.h"
 using namespace std;
 using namespace Eigen;
 
@@ -98,7 +99,7 @@ void c_test(const Eigen::MatrixXf);
 void Mutate_Func(Eigen::MatrixXf& y_Position, Eigen::MatrixXf x);
 void findlimits(Eigen::MatrixXf &pop_Position, Eigen::MatrixXf Lb, Eigen::MatrixXf Ub);
 void PlotPop(std::vector<empty_individual_class> pop, string);
-vector<vector<float>> EIgenMatrix_to_Vector(std::vector<empty_individual_class> pop);
+//vector<vector<float>> EIgenMatrix_to_Vector(std::vector<empty_individual_class> pop);
 
 
 #endif // MOEAD_FUNCTION_H_INCLUDED
@@ -106,7 +107,6 @@ vector<vector<float>> EIgenMatrix_to_Vector(std::vector<empty_individual_class> 
 
 
 /**Main MOEAD function-----------------------------------------------------------------------------------------*/
-//std::vector<empty_individual_class> MOEAD_function(DTLZ1_Para_F MOP)
 vector<Matrix<float, Eigen::Dynamic, 3>> MOEAD_function(DTLZ1_Para_F MOP)
 {
 
@@ -129,7 +129,7 @@ vector<Matrix<float, Eigen::Dynamic, 3>> MOEAD_function(DTLZ1_Para_F MOP)
     Crossover_params.VarMax_cross=VarMax;
     Mutation_params.possibility=1.0f/nVar;//1 must be float so that divide work properly.
 
-    /** Initialization*/
+    /** Initialization-----------*/
     // Create Sub-problems
     Eigen::Array<empty_Subproblem, 1, Eigen::Dynamic> sp=CreateSubProblems(nObj,MOP.nPop,CrsOver_T);
 
@@ -218,9 +218,6 @@ vector<Matrix<float, Eigen::Dynamic, 3>> MOEAD_function(DTLZ1_Para_F MOP)
              //cout<<"MOP nPop_"<< i<<"Reproduction (Crossover)"<<endl;
            
             
-            
-            
-            //================================================================================
             CrsOverRand=rand()%(Crossover_params.number)+1;  //(rand() % static_cast<int>(Crossover_params.number + 1));//0~20
             //cout<<"_CrsOver:"<<CrsOverRand<<endl;
             y.Position=MatrixXf::Constant(1,nVar,0);
@@ -393,7 +390,8 @@ vector<Matrix<float, Eigen::Dynamic, 3>> MOEAD_function(DTLZ1_Para_F MOP)
 //################//
         string title_iter = { "iter " + std::to_string(it) + " EP" };
         std::cout << title_iter << endl;
-        //if(it%10==0) plot_EigenMatToVec(Matrix_Cost, title_iter);
+        /*if(it%10==0) */
+            //plot_EigenMatToVec(Matrix_Cost, title_iter);
     }
     
     
@@ -539,38 +537,47 @@ void DetermineDomination(std::vector<empty_individual_class>& pop)
             Cost_mat.topRows(i)=Cost_mat_origin.topRows(i);//Cost_mat.rows()=nPop-1=99 ,Cost_mat saves cost except ith cost
             Cost_mat.bottomRows(pop.size()-i-1)=Cost_mat_origin.bottomRows(pop.size()-i-1);
         }
-
+        //plot_EigenMatToVec(Cost_mat,  "Cost matrix minus ith pt");
 
         NPOP_mat=MatrixXf::Constant(pop.size()-1,1,1);//reassign
         NPOP_mat=NPOP_mat.eval()*Cost_mat_origin.row(i);
+        //cout << NPOP_mat << endl;
 
         compare1=NPOP_mat.array() <= Cost_mat.array();//99x3
         compare1_int=compare1.cast<int>();
         rowsum_c= compare1_int.rowwise().sum();
         compare1_int.conservativeResize(pop.size(), 1);
         compare1_int=rowsum_c;
-
+        //cout << compare1_int.row(0).col(0) << "," << compare1_int.row(0).col(1) << "," << compare1_int.row(0).col(2) << endl;
+        //cout <<"sum: " << compare1_int.row(0).col(0) + compare1_int.row(0).col(1) + compare1_int.row(0).col(2);
 
         compare2=NPOP_mat.array() < Cost_mat.array();
         compare2_int=compare2.cast<int>();
         rowsum_c= compare2_int.rowwise().sum();
         compare2_int.conservativeResize(pop.size(), 1);
         compare2_int=rowsum_c;
+
+        
+        
+        //SaveMatToCVS(NPOP_mat, Cost_mat, compare1, compare1_int, compare2, compare2_int, "DominatedCheck");
+
 //if(i==nPop-1){cout<<"C2:"<<endl;cout<<compare2_int;}
 
 
 //        Matrix<bool,Eigen::Dynamic,Eigen::Dynamic> diff;//just for test & simplify
 //        diff= compare1_int.array()==compare2_int.array();
 
-        if( !(compare1_int.array() <Ones_set.array() ).any() )//why not compare2 only???
+//compare 99x99 times
+
+        if ((compare1_int.array() >= Ones_set.array()).all() )//why not compare2 only???
         {
-            if( !(compare2_int.array() <Ones_set.array() ).any() )//if one pt sum is 0 means this pt is dominated
+            if ((compare2_int.array() >= Ones_set.array()).all())//if one pt sum is 0 means this pt is dominated
             {
-                pop[i].IsDominated=false;
+                pop[i].IsDominated = false;
 
             }
 
-        }//compare 99x99 times
+        }
 
 //        cout<<i<<"_"<<pop(i)->IsDominated<<endl;
         //To  do list: porduce random case to prove compare2 only is right
@@ -728,24 +735,24 @@ void PlotPop(std::vector<empty_individual_class> pop, string title) {
         std::cout << "empty pop\n";
     }
 }
-vector<vector<float>> EIgenMatrix_to_Vector(std::vector<empty_individual_class> pop) {
-    vector<vector<float>> array_temp;
-    if (pop.size() != 0) {
-       
-        vector<float> v_temp(3);
-        float* p = &v_temp[0];
-
-
-        for (int i = 0; i < (int)pop.size(); ++i)
-        {
-            Eigen::Map<MatrixXf>(p, 1, 3) = pop[i].Cost;
-            array_temp.push_back(v_temp);
-        }
-        
-    }
-    else {
-        std::cout << "empty pop\n";
-    }
-
-    return array_temp;
-}
+//vector<vector<float>> EIgenMatrix_to_Vector(std::vector<empty_individual_class> pop) {
+//    vector<vector<float>> array_temp;
+//    if (pop.size() != 0) {
+//       
+//        vector<float> v_temp(3);
+//        float* p = &v_temp[0];
+//
+//
+//        for (int i = 0; i < (int)pop.size(); ++i)
+//        {
+//            Eigen::Map<MatrixXf>(p, 1, 3) = pop[i].Cost;
+//            array_temp.push_back(v_temp);
+//        }
+//        
+//    }
+//    else {
+//        std::cout << "empty pop\n";
+//    }
+//
+//    return array_temp;
+//}
