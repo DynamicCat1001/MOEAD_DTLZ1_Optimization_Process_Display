@@ -271,7 +271,7 @@ public:
     }
 
     void draw_coordinate() {
-        int axis_max = range_view;
+        int axis_max = 500;
         glLineWidth(0.5f);
         glColor3f(0.8f, 0.0f, 0.0f); //red x axis
         glBegin(GL_LINES);
@@ -294,7 +294,7 @@ public:
         glColor3f(0.9, 0.9, 0.9); //frame & grid
         glLineWidth(1.0f);
         glBegin(GL_LINES);
-        int i_total = 10, i_step = ceil(axis_max / i_total);
+        int i_total = 10, i_step = ceil(range_view / i_total);
         float axis_scale;
         for (auto i_scale=1; i_scale <= i_total; i_scale ++) {
             axis_scale = i_scale * i_step;
@@ -474,7 +474,7 @@ void display_final_EP() {
     Draw_solution_final draw_sol_final;
     draw_sol_final.draw_everything();
 
-    std::string str_final = "Best solutions in Max iteration: " + std::to_string(Set_iter);
+    std::string str_final = "Best solutions in Max iteration" + std::to_string(Set_iter);
     std::string str_final2 = "Total solutions: " + std::to_string(Storage_Cost[Set_iter - 1].rows());
 
     Display.Text_Print(g_fWidth / 10, g_fHeight - 50, GLUT_BITMAP_HELVETICA_18, str_final);

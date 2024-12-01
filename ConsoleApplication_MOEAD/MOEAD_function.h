@@ -61,7 +61,7 @@ struct empty_Subproblem
     MatrixXf Neighbors;
 };
 
-struct Array_w_idx
+struct Array_w_idx //for distance calculation of Subproblem
 {
     MatrixXf Val_;
     MatrixXf idx_;
@@ -98,7 +98,7 @@ void c_test(const Eigen::MatrixXf);
 void Mutate_Func(Eigen::MatrixXf& y_Position, Eigen::MatrixXf x);
 void findlimits(Eigen::MatrixXf &pop_Position, Eigen::MatrixXf Lb, Eigen::MatrixXf Ub);
 void PlotPop(std::vector<empty_individual_class> pop, string);
-//vector<vector<float>> EIgenMatrix_to_Vector(std::vector<empty_individual_class> pop);
+
 
 
 #endif // MOEAD_FUNCTION_H_INCLUDED
@@ -197,11 +197,11 @@ vector<Matrix<float, Eigen::Dynamic, 3>> MOEAD_function(DTLZ1_Para_F MOP)
 
     for (int it=0; it<MOP.MaxIt; ++it) //MOP.MaxIt
     {
-        std::cout<<"MOP.MaxIt in MOEAD:"<<it<<" / " << MOP.MaxIt << endl;
+        
 
         for(int i=0; i<MOP.nPop; ++i)//MOP.nPop
         {
-             //Reproduction (CROSSOVER)
+            //Reproduction (CROSSOVER)
             CrsOverRand=rand()%(Crossover_params.number)+1;  //The number of crossover for pop[i] 0~20
 
             y.Position=MatrixXf::Constant(1,nVar,0);
@@ -235,9 +235,9 @@ vector<Matrix<float, Eigen::Dynamic, 3>> MOEAD_function(DTLZ1_Para_F MOP)
                     pop[sp_N]=y;
                 }
             }
-
+            //PlotPop(pop, "crossover");
             ///Reproduction (MUTATION)
-            for (int nMutation_iter=0; nMutation_iter<Mutation_params.number; ++nMutation_iter)
+            for (int nMutation_iter=0; nMutation_iter<Mutation_params.number; ++nMutation_iter)//mutation for 20 times
             {
 
                 Mutate_Func(y.Position, pop[i].Position);
@@ -256,8 +256,10 @@ vector<Matrix<float, Eigen::Dynamic, 3>> MOEAD_function(DTLZ1_Para_F MOP)
                     pop[sp_N]=y;
                 }
             }
+            //PlotPop(pop, "mutate");
         }
-
+        //update Neighbor
+        sp = CreateSubProblems(nObj, MOP.nPop, CrsOver_T);
 
         // Determine Population Domination Status
         DetermineDomination(pop);
@@ -272,7 +274,7 @@ vector<Matrix<float, Eigen::Dynamic, 3>> MOEAD_function(DTLZ1_Para_F MOP)
         }
         else
         {
-        std::cout << "Elite Pop" << Elite_Pop.size() << endl;
+        
             DetermineDomination(Elite_Pop);
 
             Elite_Pop.erase( remove_if( Elite_Pop.begin(), Elite_Pop.end(), [](const empty_individual_class& sub_pop)
@@ -310,7 +312,9 @@ vector<Matrix<float, Eigen::Dynamic, 3>> MOEAD_function(DTLZ1_Para_F MOP)
 
         Storage_Cost.push_back(Matrix_Cost);
 //################//
-        string title_iter = { "iter " + std::to_string(it) + " EP" };
+        
+        
+        string title_iter = { "current/Max iteration in MOEAD:" + std::to_string(it) + " / " + std::to_string(MOP.MaxIt) +" . Size of Elite Pop: " + std::to_string( Elite_Pop.size()) };
         std::cout << title_iter << endl;
         /*if(it%10==0) */
             //plot_EigenMatToVec(Matrix_Cost, title_iter);
@@ -519,6 +523,10 @@ void SortDominatedPop(std::vector<empty_individual_class>& pop, std::vector<empt
         {
             Elite_Pop.push_back(pop[i]);
             
+            
+        }
+        else {
+            pop[i].Position = unifrnd(VarMin, VarMax, nVar);
         }
     }
 
@@ -541,19 +549,27 @@ void Crossover_Func(Eigen::MatrixXf& y_Position, const Eigen::MatrixXf x1, const
 
 void Mutate_Func(Eigen::MatrixXf& y_Position, Eigen::MatrixXf pop_Position)//y become pop first, then pick one to mutation.
 {
+
+    MatrixXf rate_toMutate = unifrnd(0, 1, 7);
+    MatrixXf y_viaration= unifrnd(-VarMax, VarMax, 7);
+    
     //sigma=0.1
+    int mu=ceil(Mutation_params.possibility*nVar);//=1 number of 
 
-    int size_j=ceil(Mutation_params.possibility*pop_Position.cols());//=1, y position only mutate 1 item
-    int mu=ceil(Mutation_params.possibility*nVar);//=1
+    for (int i = 0; i < pop_Position.cols(); ++i) {
+        if (rate_toMutate(0, i) < 0.5) {//Mutation_params.possibility
+            y_Position(0, i) = pop_Position(0, i) + ((1 / Mutation_params.number) * y_viaration(0, i));
+            y_Position(0, i)=min(max(y_Position(0, i), VarMin), VarMax);
+        }
+    }
 
-    std::random_device rd;
-    std::mt19937 generator( rd() );
-    std::uniform_int_distribution<int> distribution(0, nVar-1);
-
-    VectorXi j=VectorXi::Random(size_j);//randsample(n,k)丟k個1~n均勻分布數值  randsample(nVar,nMu)
-    if(size_j==1)
+    /*
+    VectorXi j=VectorXi::Random(mu);//randsample(n,k)丟k個1~n均勻分布數值  randsample(nVar,nMu)
+    if(mu ==1)
     {
         j(0)=distribution(generator);
+       
+
     }
     else
     {
@@ -568,9 +584,11 @@ void Mutate_Func(Eigen::MatrixXf& y_Position, Eigen::MatrixXf pop_Position)//y b
     float randi=sigma*distribution(generator);//randn(n): nxn
     y_Position(0,j)=pop_Position(0,j).array()+randi;//[1x7][7x7]
 
-//    cout<<"after : "<<y_Position<<endl;
+    */
 
 }
+
+
 
 void findlimits(Eigen::MatrixXf &pop_Position, Eigen::MatrixXf Lb, Eigen::MatrixXf Ub)
 {
