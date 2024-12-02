@@ -363,3 +363,5 @@ MigrationBackup/
 FodyWeavers.xsd
 /ConsoleApplication_MOEAD/BestEP_MOEAD.csv
 /ConsoleApplication_MOEAD/button_display.cpp
+/ConsoleApplication_MOEAD/IGD_Check0.csv
+*.csv
