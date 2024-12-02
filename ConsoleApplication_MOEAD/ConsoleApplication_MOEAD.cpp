@@ -16,6 +16,7 @@
 #include "DTLZ1_function.h"
 #include "MOEAD_function.h"
 #include "Read_Ref_Pt.h"
+#include "IGD_calculation.h"
 #include "plot_EigenMatToVec.h"
 #include<numeric>
 
@@ -41,7 +42,7 @@ Eigen::MatrixXf DTLZ1_EX(void);
 /**----------------view parameter -------------------*/
 int mx, my; //position of mouse;
 float x_angle = 30, y_angle = -60; //angle of eye
-int range_view = 300;
+int range_view = 200;
 
 /**-----------------animation parameter----------*/
 int currentPeriod = 0;
@@ -57,6 +58,7 @@ int Set_iter_step;//Set_iter/10;
 Eigen::Matrix<float, Eigen::Dynamic, 3> Matrix_Cost;
 vector<Eigen::Matrix<float, Eigen::Dynamic, 3>> Storage_Cost;
 Eigen::MatrixXf ref_pt_matrix(2500, 3);
+float IGD_value=0;
 
 
 #define MAX_COMMAND_LENGTH 100
@@ -165,10 +167,12 @@ int main(int argc, char** argv)
         }
     }
     
-    DTLZ1_EX();
-    Matrix_Cost = Storage_Cost[0];
     ref_pt_matrix = Read_file(2500, 3);
     
+    DTLZ1_EX();
+    Matrix_Cost = Storage_Cost[0];
+    
+
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
     glutInitWindowSize(1000, 500);
@@ -475,10 +479,11 @@ void display_final_EP() {
     draw_sol_final.draw_everything();
 
     std::string str_final = "Best solutions in Max iteration" + std::to_string(Set_iter);
-    std::string str_final2 = "Total solutions: " + std::to_string(Storage_Cost[Set_iter - 1].rows());
+    std::string str_final2 = "Total solutions: " + std::to_string(Storage_Cost[Set_iter - 1].rows()) +", IGD :" + std::to_string(IGD_value);
 
     Display.Text_Print(g_fWidth / 10, g_fHeight - 50, GLUT_BITMAP_HELVETICA_18, str_final);
     Display.Text_Print(g_fWidth / 10, g_fHeight - 80, GLUT_BITMAP_HELVETICA_18, str_final2);
+    
 
     glutSwapBuffers();
 }
@@ -586,6 +591,11 @@ Eigen::MatrixXf DTLZ1_EX(void)
         }
     }
     file2.close();
+
+    Eigen::Matrix<float, Eigen::Dynamic, 3> Final_Cost;
+    Final_Cost = Storage_Cost[Set_iter - 1];
+    IGD_value =IGD_calculation(ref_pt_matrix, Final_Cost);
+
     /*
     int rep_iter_size=Storage_Cost[dtlz1_para.MaxIt].
 
