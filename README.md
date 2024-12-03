@@ -6,3 +6,4 @@ The glut and eigen library are used to support the User Interface and the matrix
 These two libraries might be installed and linked well before operating this project.
 
 # **key feature**
+![Uploading 2024-12-02_23-12-52.gif…]()
