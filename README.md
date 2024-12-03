@@ -18,4 +18,4 @@ This project is used to demonstrate the optimization process of mulit-objective 
 >> Show the final solution and IGD indicator.
 
 # **key feature**
-
+![GITHUB](C:\Users\l1i9l\OneDrive\resume\2024-12-02_23-12-52.gif)
