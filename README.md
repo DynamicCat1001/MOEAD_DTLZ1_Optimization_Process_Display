@@ -2,11 +2,11 @@
 This project is used to demonstrate the optimization process of mulit-objective evolution algorithm on the test function DTLZ1.
 
 # **requirement**
->> The glut and eigen library are used to support the User Interface and the >> matrix evaluation respectively. 
->> These two libraries might be installed and linked well before operating this project.
+> *The glut and eigen library are used to support the User Interface and the >> matrix evaluation respectively. 
+> *These two libraries might be installed and linked well before operating this project.
 # **flow**
 **Input iteration value**
->> Input maximum iteration of optimization between range 10~1000.
+> *Input maximum iteration of optimization between range 10~1000.
 **Read reference points**
 >> Read best solution data for IGD indicator calculation.
 **Optimizing**
