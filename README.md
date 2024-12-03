@@ -19,5 +19,3 @@ This project is used to demonstrate the optimization process of mulit-objective 
 
 # **key feature**
 ![2024-12-02_23-12-52](https://github.com/user-attachments/assets/d8af2c74-d4b9-4442-bff5-ee28eac9efeb)
-
-![2024-12-02_23-12-52](https://github.com/user-attachments/assets/d8af2c74-d4b9-4442-bff5-ee28eac9efeb"title")
