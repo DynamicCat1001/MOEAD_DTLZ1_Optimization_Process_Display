@@ -1,21 +1,11 @@
 # **Overview**
 This project demonstrates the optimization process of the multi-objective evolution algorithm on the test function DTLZ1.
 
-# **requirement**
-> * The glut and eigen library support the User Interface and the matrix operation respectively. 
+# **Built with**
+> * [glut library](https://www.opengl.org/resources/libraries/glut/glut_downloads.php) -construct the display object
+> * [eigen library](https://eigen.tuxfamily.org/index.php?title=Main_Page) - matrix operation among objective value during optimization
 > * These two libraries should be installed and linked well to operate this project.
-# **flow of project**
-* **get iteration value**
-> * get maximum iteration of optimization between range 10~1000 from user input.
-* **Read reference points**
-> * Read the best solution data to calculate IGD indicator to estimate the performance of MOEAD on test problems.
-* **Optimizing**
-> * Execute optimization of MOEAD on test function DTLZ1.
-> * The results of every iteration are stored.
-> * Calculate IGD
-* **Display the results**
-> * construct the objective space animation with the stored solution Group of iterations.
-> * Construct the object of the final solution group and show the IGD indicator.
+
 
 # **key feature**
 > * Display interface constructed by glut library.
