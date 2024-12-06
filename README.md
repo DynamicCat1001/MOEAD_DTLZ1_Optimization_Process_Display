@@ -1,8 +1,8 @@
 # **Overview**
-This project is used to demonstrate the optimization process of multi-objective evolution algorithm on the test function DTLZ1.
+This project demonstrates the optimization process of the multi-objective evolution algorithm on the test function DTLZ1.
 
 # **requirement**
-> * The glut and eigen library are used to support the User Interface and the matrix evaluation respectively. 
+> * The glut and eigen library support the User Interface and the matrix evaluation respectively. 
 > * These two libraries might be installed and linked well before operating this project.
 # **flow**
 * **Input iteration value**
@@ -11,7 +11,7 @@ This project is used to demonstrate the optimization process of multi-objective 
 > * Read best solution data for IGD indicator calculation.
 * **Optimizing**
 > * Execute MOEAD on test function DTLZ1. 
-> * The result of every iteration are stored.
+> * The results of every iteration are stored.
 > * Calculate IGD
 * **Display the results**
 > * Rendering with the stored solution Group of different iteration
@@ -19,11 +19,12 @@ This project is used to demonstrate the optimization process of multi-objective 
 
 # **key feature**
 > * Display interface built by glut library.
->> * optimization process among iterations divided by every 20 iterations.
->> * distribution and IGD value of final elite solution group of max iteration.
-> * optimization of MOEAD on test function DTLZ1.
+>> * The optimization process among iterations divided by every 20 iterations is displayed on the left window.
+>> * The distribution and IGD value of the final elite solution group of max iteration is displayed on the right window.
+> * The optimization of MOEAD on test function DTLZ1.
 # **Step**
 > 1. input max iteration within the range of 10~1000.
 ![image](https://github.com/user-attachments/assets/348cf57a-7735-4afa-b32b-8ff55469c12f)
 > 2. After the optimization, the Interface shows the results.
+> 3. Drag the interface to see the distribution in the objective space.
 ![2024-12-02_23-12-52](https://github.com/user-attachments/assets/d8af2c74-d4b9-4442-bff5-ee28eac9efeb)
