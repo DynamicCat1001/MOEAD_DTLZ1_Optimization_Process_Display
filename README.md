@@ -4,8 +4,6 @@ This project demonstrates the optimization process of the multi-objective evolut
 # **Built with**
 > * [glut library](https://www.opengl.org/resources/libraries/glut/glut_downloads.php) -construct the display object
 > * [eigen library](https://eigen.tuxfamily.org/index.php?title=Main_Page) - matrix operation among objective value during optimization
-> * These two libraries should be installed and linked well to operate this project.
-
 
 # **key feature**
 > * Display interface constructed by glut library.
